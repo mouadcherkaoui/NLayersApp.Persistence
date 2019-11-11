@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using NLayersApp.Persistence.Abstractions;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
@@ -19,10 +20,14 @@ namespace NLayersApp.Persistence.Extensions
         public static ModelBuilder AddAuditProperties<TType, TKey>(this ModelBuilder builder) 
             where TType: class
         {
-            builder.Entity<TType>().Property<TKey>("CreatedBy");
-            builder.Entity<TType>().Property<TKey>("ModifiedBy");
-            builder.Entity<TType>().Property<DateTime>("CreatedOn");
-            builder.Entity<TType>().Property<DateTime>("ModifiedOn");
+            var entityType = builder.Model.FindRuntimeEntityType(typeof(TType)).ClrType;
+            if (typeof(IAuditable).IsAssignableFrom(entityType))
+            {
+                builder.Entity<TType>().Property<TKey>("CreatedBy");
+                builder.Entity<TType>().Property<TKey>("ModifiedBy");
+                builder.Entity<TType>().Property<DateTime>("CreatedOn");
+                builder.Entity<TType>().Property<DateTime>("ModifiedOn");
+            }
 
             return builder;
         }
@@ -30,7 +35,9 @@ namespace NLayersApp.Persistence.Extensions
         public static ModelBuilder AddIsDeletedProperty<TType>(this ModelBuilder builder)
             where TType: class
         {
-            builder.Entity<TType>().Property<bool>("IsDeleted");
+            var entityType = builder.Model.FindRuntimeEntityType(typeof(TType)).ClrType;
+            if (typeof(ISoftDelete).IsAssignableFrom(entityType)) 
+                builder.Entity<TType>().Property<bool>("IsDeleted");
             return builder;
         }
 
