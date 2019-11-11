@@ -43,7 +43,7 @@ namespace NLayersApp.Persistence.Tests
         [TestInitialize] 
         public void Test_Initialization()
         {
-            typesResolver = GetResolver(typeof(TestModel), typeof(Auditable), typeof(SoftDeletable), typeof(AuditableSoftDeletable));
+            typesResolver = GetResolver(typeof(TestModelConfig), typeof(Auditable), typeof(SoftDeletable), typeof(AuditableSoftDeletable));
         }
 
 
@@ -184,7 +184,7 @@ namespace NLayersApp.Persistence.Tests
                 Assert.IsNotNull(context.Model.FindRuntimeEntityType(typeof(Auditable)));
                 Assert.IsNotNull(context.Model.FindRuntimeEntityType(typeof(SoftDeletable)));                
                 
-                foreach (var current in typesResolver.RegisteredTypes)
+                foreach (var current in typesResolver.RegisteredTypes.Except(new []{ typeof(TestModelConfig) }))
                 {
                     var entityType = context.Model.FindRuntimeEntityType(current);
                     Assert.IsNotNull(entityType);

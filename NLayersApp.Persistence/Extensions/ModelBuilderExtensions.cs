@@ -2,6 +2,7 @@
 using NLayersApp.Persistence.Abstractions;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Text;
 
@@ -13,8 +14,15 @@ namespace NLayersApp.Persistence.Extensions
         {
             foreach (var current in types)
             {
-                builder.Entity(current);
-                builder.applyProperties(current);
+                if (!_isTypeConfiguration(current))
+                {
+                    builder.Entity(current);
+                    builder.applyProperties(current);
+                }
+                else
+                {
+                    applyConfiguration(ref builder, current);
+                }
             }
         }
         public static ModelBuilder AddAuditProperties<TType, TKey>(this ModelBuilder builder) 
@@ -53,6 +61,28 @@ namespace NLayersApp.Persistence.Extensions
             builder
                 .AddAuditProperties<TType, Guid>()
                 .AddIsDeletedProperty<TType>();
+        }
+        private static void applyConfiguration(ref ModelBuilder builder, Type current)
+        {
+            var configInstance = Activator.CreateInstance(current);
+            var entityType = current.GetTypeInfo().ImplementedInterfaces.FirstOrDefault(i => i.Name.Contains("IEntityTypeConfiguration"))?.GetGenericArguments().First();
+            typeof(ModelBuilderExtensions)
+                .GetMethod("_applyConfiguration", BindingFlags.NonPublic | BindingFlags.Static)
+                .MakeGenericMethod(entityType)
+                .Invoke(builder, new[] { builder, configInstance });
+        }
+
+        private static void _applyConfiguration<TType>(ref ModelBuilder builder, IEntityTypeConfiguration<TType> config)            
+            where TType: class
+        {
+            builder.ApplyConfiguration(config);
+        }
+
+
+
+        private static bool _isTypeConfiguration(Type type)
+        {
+            return type.GetInterfaces().Any(i => i.Name.Contains("IEntityTypeConfiguration"));
         }
     }
 }
