@@ -1,6 +1,7 @@
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
+using System.Reflection;
 using System.Security.Principal;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,33 +16,6 @@ namespace NLayersApp.Persistence.Tests
     [TestClass]
     public class IContextTests
     {
-        private class TestModel
-        {
-            [Key]
-            public int Id { get; set; }
-            public string Name { get; set; }
-        }
-
-        private class Auditable: IAuditable 
-        {
-            [Key]
-            public int Id { get; set; }
-            public string Name { get; set; }
-        }
-        private class SoftDeletable : ISoftDelete 
-        {
-            [Key]
-            public int Id { get; set; }
-            public string Name { get; set; }
-        }
-        private class AuditableSoftDeletable : IAuditable, ISoftDelete 
-        {
-            [Key]
-            public int Id { get; set; }
-            public string Name { get; set; }
-        }
-
-
         private IContext GetContext(ITypesResolver typesResolver)
         {
             var optionsBuilder = new DbContextOptionsBuilder<TDbContext<IdentityUser, IdentityRole, string>>();
@@ -55,14 +29,21 @@ namespace NLayersApp.Persistence.Tests
 
         private ITypesResolver GetResolver(params Type[] types)
         {
-            return new TypesResolver(() => types);
+            
+            var resolverOptions = new TypesResolverOptions()
+            {
+                Assembly = Assembly.GetExecutingAssembly().GetName().Name,
+                Types = types.Select(t => t.Name).ToArray()
+            };
+
+            return new TypesResolver(resolverOptions);
         }
         ITypesResolver typesResolver;
         
         [TestInitialize] 
         public void Test_Initialization()
         {
-            typesResolver = GetResolver(typeof(TestModel), typeof(Auditable), typeof(SoftDeletable), typeof(AuditableSoftDeletable));
+            typesResolver = GetResolver(typeof(TestModelConfig), typeof(Auditable), typeof(SoftDeletable), typeof(AuditableSoftDeletable));
         }
 
 
@@ -203,7 +184,7 @@ namespace NLayersApp.Persistence.Tests
                 Assert.IsNotNull(context.Model.FindRuntimeEntityType(typeof(Auditable)));
                 Assert.IsNotNull(context.Model.FindRuntimeEntityType(typeof(SoftDeletable)));                
                 
-                foreach (var current in typesResolver.RegisteredTypes)
+                foreach (var current in typesResolver.RegisteredTypes.Except(new []{ typeof(TestModelConfig) }))
                 {
                     var entityType = context.Model.FindRuntimeEntityType(current);
                     Assert.IsNotNull(entityType);
