@@ -64,3 +64,10 @@ steps:
     command: push
     publishVstsFeed: 'cherkaouimouad'
     allowPackageConflicts: true
+
+- task: NuGetCommand@2
+  inputs:
+    command: 'push'
+    packagesToPush: '$(Build.ArtifactStagingDirectory)/**/*.nupkg;!$(Build.ArtifactStagingDirectory)/**/*.symbols.nupkg'
+    nuGetFeedType: 'internal'
+    publishVstsFeed: 'abcbbf92-2525-4c43-80df-11ebccf04084/39a20ecf-b855-4d3c-a8ab-6a91efb50d2f'
