@@ -14,7 +14,7 @@ namespace NLayersApp.Persistence
             var assembly = options.Value.Assembly;
             var types = options.Value.Types;
 
-            RegisteredTypes = Assembly.LoadFrom($"{assembly}.dll")
+            RegisteredTypes = Assembly.LoadFrom($"{assembly}")
                 .ExportedTypes
                 .Where(type => types.Any(t => type.Name.Equals(t, StringComparison.OrdinalIgnoreCase)))
                 .ToArray();

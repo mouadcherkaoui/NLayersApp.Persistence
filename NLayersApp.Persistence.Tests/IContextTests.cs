@@ -32,7 +32,7 @@ namespace NLayersApp.Persistence.Tests
             
             var resolverOptions = new TypesResolverOptions()
             {
-                Assembly = Assembly.GetExecutingAssembly().GetName().Name,
+                Assembly = $"{Assembly.GetExecutingAssembly().GetName().Name}.dll",
                 Types = types.Select(t => t.Name).ToArray()
             };
 
