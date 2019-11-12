@@ -32,8 +32,12 @@ namespace NLayersApp.Persistence.Tests
             
             var resolverOptions = new TypesResolverOptions()
             {
-                Assembly = $"{Assembly.GetExecutingAssembly().GetName().Name}.dll",
-                Types = types.Select(t => t.Name).ToArray()
+                TypesDefinitions = new TypeDefinition[] { 
+                    new TypeDefinition { 
+                        Assembly = $"{Assembly.GetExecutingAssembly().GetName().Name}.dll",
+                        Types = types.Select(t => t.Name).ToArray() 
+                    }
+                }
             };
 
             return new TypesResolver(resolverOptions);

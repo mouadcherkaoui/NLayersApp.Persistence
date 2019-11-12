@@ -11,13 +11,17 @@ namespace NLayersApp.Persistence
         Func<string, Type> resolveAction;
         public TypesResolver(IOptions<TypesResolverOptions> options)
         {
-            var assembly = options.Value.Assembly;
-            var types = options.Value.Types;
+            RegisteredTypes =
+            options.Value.TypesDefinitions.Select(t =>
+            {
+                var assembly = t.Assembly;
+                return Assembly.LoadFrom($"{assembly}")
+                    .ExportedTypes
+                    .Where(type => t.Types.Any(t => type.Name.Equals(t, StringComparison.OrdinalIgnoreCase)))
+                    .ToArray();
+            }).Aggregate(new Type[0], (ac, t) => ac.Concat(t).ToArray());
+            var types = options.Value.TypesDefinitions;
 
-            RegisteredTypes = Assembly.LoadFrom($"{assembly}")
-                .ExportedTypes
-                .Where(type => types.Any(t => type.Name.Equals(t, StringComparison.OrdinalIgnoreCase)))
-                .ToArray();
         }
 
         public TypesResolver(Func<Type[]> registerAction)

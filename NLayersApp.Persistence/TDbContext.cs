@@ -16,7 +16,6 @@ namespace NLayersApp.Persistence
         where TRole : IdentityRole<TKey>
         where TKey : IEquatable<TKey>
     {
-        private readonly Type[] _types;
         private readonly ITypesResolver _innerTypesResolver;
         public TDbContext(DbContextOptions options) : base(options)
         {
